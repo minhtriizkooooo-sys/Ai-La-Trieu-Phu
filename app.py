@@ -5,7 +5,6 @@ import pandas as pd
 import os
 
 # --- CẤU HÌNH HỆ THỐNG ---
-# Đảm bảo trên Render bạn đã đặt tên Key là: Ai_La_Trieu_Phu_API
 API_KEY_FROM_ENV = os.environ.get("Ai_La_Trieu_Phu_API")
 
 def init_game():
@@ -15,7 +14,6 @@ def init_game():
     st.session_state.game_over = False
     st.session_state.won = False
     st.session_state.used_helpers = {"call": False, "audience": False}
-    # Danh sách 16 phần tử (từ mốc 0 đến câu 15)
     st.session_state.money_levels = [
         "0", "200.000", "400.000", "600.000", "1.000.000", "2.000.000", 
         "3.000.000", "6.000.000", "10.000.000", "22.000.000", "30.000.000", 
@@ -134,7 +132,7 @@ def main():
                 st.bar_chart(pd.DataFrame(data, index=["A", "B", "C", "D"], columns=["% Tỷ lệ"]))
 
     # --- FOOTER ---
-    # Sử dụng CSS để cố định footer ở cuối trang
+    # background-color đã được đổi thành màu xanh da trời (#1E90FF)
     footer_html = """
     <style>
     .footer {
@@ -142,18 +140,19 @@ def main():
         left: 0;
         bottom: 0;
         width: 100%;
-        background-color: #0E1117;
-        color: #FAFAFA;
+        background-color: #1E90FF;
+        color: white;
         text-align: center;
         padding: 10px;
         font-family: sans-serif;
         font-size: 14px;
-        border-top: 1px solid #31333F;
+        border-top: 2px solid #1C86EE;
         z-index: 100;
+        font-weight: bold;
     }
     </style>
     <div class="footer">
-        <p>👨‍💻 <b>Developer:</b> Lai Nguyễn Minh Trí | 📞 <b>Hotline:</b> 84.908.08.35.66</p>
+        <p>👨‍💻 Developer: Lại Nguyễn Minh Trí | 📞 Hotline: 84.908.08.35.66</p>
     </div>
     """
     st.markdown(footer_html, unsafe_allow_html=True)
