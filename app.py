@@ -5,7 +5,6 @@ import pandas as pd
 import os
 
 # --- CẤU HÌNH HỆ THỐNG ---
-# Tên biến trong Python KHÔNG ĐƯỢC chứa dấu gạch ngang. Đã đổi thành dấu gạch dưới.
 # Đảm bảo trên Render bạn đã đặt tên Key là: Ai_La_Trieu_Phu_API
 API_KEY_FROM_ENV = os.environ.get("Ai_La_Trieu_Phu_API")
 
@@ -16,7 +15,7 @@ def init_game():
     st.session_state.game_over = False
     st.session_state.won = False
     st.session_state.used_helpers = {"call": False, "audience": False}
-    # Danh sách 16 phần tử để tránh lỗi Index (từ mốc 0 đến câu 15)
+    # Danh sách 16 phần tử (từ mốc 0 đến câu 15)
     st.session_state.money_levels = [
         "0", "200.000", "400.000", "600.000", "1.000.000", "2.000.000", 
         "3.000.000", "6.000.000", "10.000.000", "22.000.000", "30.000.000", 
@@ -26,15 +25,14 @@ def init_game():
 def fetch_ai_question(level):
     """Gọi Groq API để lấy câu hỏi theo cấp độ"""
     if not API_KEY_FROM_ENV:
-        st.error("Chưa cấu hình API Key trong Environment Variables trên Render (Ai_La_Trieu_Phu_API)!")
+        st.error("Chưa cấu hình API Key trên Render (Ai_La_Trieu_Phu_API)!")
         return None
 
     client = Groq(api_key=API_KEY_FROM_ENV)
-    
     prompt = f"""Tạo một câu hỏi trắc nghiệm tiếng Việt cho trò chơi 'Ai là triệu phú'. 
     Cấp độ khó: {level}/15. 
-    Yêu cầu trả về định dạng JSON nguyên bản, không giải thích thêm: 
-    {{"question": "Nội dung câu hỏi", "options": ["A", "B", "C", "D"], "answer_idx": 0}}"""
+    Yêu cầu trả về định dạng JSON nguyên bản: 
+    {{"question": "Nội dung", "options": ["A", "B", "C", "D"], "answer_idx": 0}}"""
     
     try:
         completion = client.chat.completions.create(
@@ -50,42 +48,36 @@ def fetch_ai_question(level):
 def main():
     st.set_page_config(page_title="AI Millionaire Pro", layout="wide")
     
-    # Kiểm tra khởi tạo session state
     if 'step' not in st.session_state:
         init_game()
 
-    # --- GIAO DIỆN SIDEBAR (BẢNG MỨC THƯỞNG) ---
+    # --- GIAO DIỆN SIDEBAR ---
     st.sidebar.header("💰 MỨC THƯỞNG")
     for i in range(15, 0, -1):
         is_milestone = i % 5 == 0
         label = f"Câu {i}: {st.session_state.money_levels[i]} VNĐ"
-        
         if st.session_state.step == i:
             st.sidebar.markdown(f"**👉 :orange[{label}]**")
         else:
-            if is_milestone:
-                st.sidebar.markdown(f"**:red[{label}]**")
-            else:
-                st.sidebar.markdown(f"{label}")
+            color = ":red" if is_milestone else ""
+            st.sidebar.markdown(f"{color}[{label}]")
 
     # --- GIAO DIỆN CHÍNH ---
     st.title("🏆 AI LÀ TRIỆU PHÚ")
 
     if st.session_state.won:
         st.balloons()
-        st.success(f"CHÚC MỪNG! Bạn đã vượt qua câu 15 và nhận {st.session_state.money_levels[15]} VNĐ!")
+        st.success(f"CHÚC MỪNG! Bạn đã thắng {st.session_state.money_levels[15]} VNĐ!")
         if st.button("Chơi lại"):
-            init_game()
-            st.rerun()
+            init_game(); st.rerun()
         return
 
     if st.session_state.game_over:
         st.error(f"Rất tiếc! Bạn đã dừng bước.")
         safe_step = (st.session_state.step // 5) * 5
-        st.info(f"Tiền thưởng nhận được: {st.session_state.money_levels[safe_step]} VNĐ")
+        st.info(f"Tiền thưởng: {st.session_state.money_levels[safe_step]} VNĐ")
         if st.button("Chơi lại từ đầu"):
-            init_game()
-            st.rerun()
+            init_game(); st.rerun()
         return
 
     if st.session_state.current_q is None:
@@ -122,20 +114,16 @@ def main():
         st.divider()
         st.subheader("🆘 Quyền trợ giúp")
         h_col1, h_col2 = st.columns(2)
-        
         with h_col1:
             if st.button("📞 Gọi cho người thân", disabled=st.session_state.used_helpers['call'], use_container_width=True):
                 st.session_state.used_helpers['call'] = True
                 st.session_state.show_call = True
-            
             if st.session_state.get('show_call'):
                 st.warning(f"🤖 Người thân: 'Mình nghĩ đáp án đúng là **{options_labels[q['answer_idx']]}**.'")
-                
         with h_col2:
             if st.button("📊 Ý kiến khán giả", disabled=st.session_state.used_helpers['audience'], use_container_width=True):
                 st.session_state.used_helpers['audience'] = True
                 st.session_state.show_audience = True
-            
             if st.session_state.get('show_audience'):
                 data = [10, 10, 10, 10]
                 correct_rate = max(15, 80 - (st.session_state.step * 4)) 
@@ -143,9 +131,32 @@ def main():
                 rem = (100 - correct_rate) // 3
                 for idx in range(4):
                     if idx != q['answer_idx']: data[idx] = rem
-                
-                chart_data = pd.DataFrame(data, index=["A", "B", "C", "D"], columns=["% Tỷ lệ"])
-                st.bar_chart(chart_data)
+                st.bar_chart(pd.DataFrame(data, index=["A", "B", "C", "D"], columns=["% Tỷ lệ"]))
+
+    # --- FOOTER ---
+    # Sử dụng CSS để cố định footer ở cuối trang
+    footer_html = """
+    <style>
+    .footer {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        background-color: #0E1117;
+        color: #FAFAFA;
+        text-align: center;
+        padding: 10px;
+        font-family: sans-serif;
+        font-size: 14px;
+        border-top: 1px solid #31333F;
+        z-index: 100;
+    }
+    </style>
+    <div class="footer">
+        <p>👨‍💻 <b>Developer:</b> Lai Nguyễn Minh Trí | 📞 <b>Hotline:</b> 84.908.08.35.66</p>
+    </div>
+    """
+    st.markdown(footer_html, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
