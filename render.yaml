@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: ai-millionaire-game
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app.py
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false # Bạn sẽ nhập key này thủ công trên Dashboard Render để bảo mật
