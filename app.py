@@ -5,8 +5,9 @@ import pandas as pd
 import os
 
 # --- CẤU HÌNH HỆ THỐNG ---
-# Lấy API Key từ môi trường của Render (Environment Variables)
-Ai-La-Trieu-Phu-API = os.environ.get("Ai-La-Trieu-Phu-API")
+# Tên biến trong Python KHÔNG ĐƯỢC chứa dấu gạch ngang. Đã đổi thành dấu gạch dưới.
+# Đảm bảo trên Render bạn đã đặt tên Key là: Ai_La_Trieu_Phu_API
+API_KEY_FROM_ENV = os.environ.get("Ai_La_Trieu_Phu_API")
 
 def init_game():
     """Khởi tạo hoặc đặt lại trạng thái trò chơi"""
@@ -24,11 +25,11 @@ def init_game():
 
 def fetch_ai_question(level):
     """Gọi Groq API để lấy câu hỏi theo cấp độ"""
-    if not GROQ_API_KEY:
-        st.error("Chưa cấu hình GROQ_API_KEY trong Environment Variables trên Render!")
+    if not API_KEY_FROM_ENV:
+        st.error("Chưa cấu hình API Key trong Environment Variables trên Render (Ai_La_Trieu_Phu_API)!")
         return None
 
-    client = Groq(api_key=Ai-La-Trieu-Phu-API)
+    client = Groq(api_key=API_KEY_FROM_ENV)
     
     prompt = f"""Tạo một câu hỏi trắc nghiệm tiếng Việt cho trò chơi 'Ai là triệu phú'. 
     Cấp độ khó: {level}/15. 
@@ -55,7 +56,6 @@ def main():
 
     # --- GIAO DIỆN SIDEBAR (BẢNG MỨC THƯỞNG) ---
     st.sidebar.header("💰 MỨC THƯỞNG")
-    # Hiển thị từ câu 15 xuống câu 1
     for i in range(15, 0, -1):
         is_milestone = i % 5 == 0
         label = f"Câu {i}: {st.session_state.money_levels[i]} VNĐ"
@@ -71,7 +71,6 @@ def main():
     # --- GIAO DIỆN CHÍNH ---
     st.title("🏆 AI LÀ TRIỆU PHÚ")
 
-    # 1. Kiểm tra trạng thái Thắng
     if st.session_state.won:
         st.balloons()
         st.success(f"CHÚC MỪNG! Bạn đã vượt qua câu 15 và nhận {st.session_state.money_levels[15]} VNĐ!")
@@ -80,10 +79,8 @@ def main():
             st.rerun()
         return
 
-    # 2. Kiểm tra trạng thái Thua
     if st.session_state.game_over:
         st.error(f"Rất tiếc! Bạn đã dừng bước.")
-        # Tiền thưởng dựa trên mốc an toàn (Câu 5 hoặc Câu 10)
         safe_step = (st.session_state.step // 5) * 5
         st.info(f"Tiền thưởng nhận được: {st.session_state.money_levels[safe_step]} VNĐ")
         if st.button("Chơi lại từ đầu"):
@@ -91,7 +88,6 @@ def main():
             st.rerun()
         return
 
-    # 3. Load câu hỏi từ AI
     if st.session_state.current_q is None:
         with st.spinner(f"AI đang chuẩn bị câu hỏi số {st.session_state.step}..."):
             new_q = fetch_ai_question(st.session_state.step)
@@ -99,13 +95,11 @@ def main():
                 st.session_state.current_q = new_q
                 st.rerun()
 
-    # 4. Hiển thị nội dung câu hỏi
     q = st.session_state.current_q
     if q:
         st.markdown(f"### Câu hỏi {st.session_state.step}:")
         st.info(q['question'])
 
-        # Hiển thị 4 phương án
         cols = st.columns(2)
         options_labels = ["A", "B", "C", "D"]
         for i, opt in enumerate(q['options']):
@@ -118,7 +112,6 @@ def main():
                         else:
                             st.session_state.step += 1
                             st.session_state.current_q = None
-                            # Reset trạng thái hiển thị trợ giúp cho câu mới
                             st.session_state.show_call = False
                             st.session_state.show_audience = False
                         st.rerun()
@@ -126,7 +119,6 @@ def main():
                         st.session_state.game_over = True
                         st.rerun()
 
-        # 5. Quyền trợ giúp
         st.divider()
         st.subheader("🆘 Quyền trợ giúp")
         h_col1, h_col2 = st.columns(2)
@@ -145,11 +137,9 @@ def main():
                 st.session_state.show_audience = True
             
             if st.session_state.get('show_audience'):
-                # Giả lập tỉ lệ khán giả chọn đúng (giảm dần khi câu hỏi khó hơn)
                 data = [10, 10, 10, 10]
                 correct_rate = max(15, 80 - (st.session_state.step * 4)) 
                 data[q['answer_idx']] = correct_rate
-                # Chia phần còn lại cho 3 đáp án sai
                 rem = (100 - correct_rate) // 3
                 for idx in range(4):
                     if idx != q['answer_idx']: data[idx] = rem
@@ -157,8 +147,5 @@ def main():
                 chart_data = pd.DataFrame(data, index=["A", "B", "C", "D"], columns=["% Tỷ lệ"])
                 st.bar_chart(chart_data)
 
-# --- CHẠY APP ---
 if __name__ == "__main__":
     main()
-
-
