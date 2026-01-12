@@ -28,7 +28,7 @@ def fetch_ai_question(level):
         st.error("Chưa cấu hình GROQ_API_KEY trong Environment Variables trên Render!")
         return None
 
-    client = Groq(api_key=GROQ_API_KEY)
+    client = Groq(api_key=Ai-La-Trieu-Phu-API)
     
     prompt = f"""Tạo một câu hỏi trắc nghiệm tiếng Việt cho trò chơi 'Ai là triệu phú'. 
     Cấp độ khó: {level}/15. 
@@ -69,7 +69,7 @@ def main():
                 st.sidebar.markdown(f"{label}")
 
     # --- GIAO DIỆN CHÍNH ---
-    st.title("🏆 AI LÀ TRIỆU PHÚ - GROQ ENGINE")
+    st.title("🏆 AI LÀ TRIỆU PHÚ")
 
     # 1. Kiểm tra trạng thái Thắng
     if st.session_state.won:
@@ -160,4 +160,5 @@ def main():
 # --- CHẠY APP ---
 if __name__ == "__main__":
     main()
+
 
