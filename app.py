@@ -6,7 +6,7 @@ import os
 
 # --- CẤU HÌNH HỆ THỐNG ---
 # Lấy API Key từ môi trường của Render (Environment Variables)
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+Ai-La-Trieu-Phu-API = os.environ.get("Ai-La-Trieu-Phu-API")
 
 def init_game():
     """Khởi tạo hoặc đặt lại trạng thái trò chơi"""
@@ -160,3 +160,4 @@ def main():
 # --- CHẠY APP ---
 if __name__ == "__main__":
     main()
+
